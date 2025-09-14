@@ -1,0 +1,10 @@
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
+
+/database
+./database/
+
+.codacy/
+.vscode/
