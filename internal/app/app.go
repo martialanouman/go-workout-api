@@ -33,7 +33,7 @@ func NewApplication() (*Application, error) {
 
 	app := &Application{
 		Logger:         logger,
-		WorkoutHandler: api.NewWorkoutHandler(),
+		WorkoutHandler: api.NewWorkoutHandler(store.NewPostgresWorkoutStore(db)),
 		Db:             db,
 	}
 
