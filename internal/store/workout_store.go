@@ -1,6 +1,8 @@
 package store
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type Workout struct {
 	Id              int64          `json:"id"`
@@ -26,6 +28,7 @@ type WorkoutEntry struct {
 type WorkoutStore interface {
 	CreateWorkout(*Workout) (*Workout, error)
 	GetWorkoutById(int64) (*Workout, error)
+	UpdateWorkout(*Workout) error
 }
 
 type PostgresWorkoutStore struct {
@@ -72,7 +75,105 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 
 func (p *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
 	workout := &Workout{}
+
+	query :=
+		`SELECT id, title, description, duration_minutes, calories_burned
+	FROM workouts
+	WHERE id = $1
+	`
+
+	err := p.db.QueryRow(query, id).Scan(&workout.Id, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	entryQuery := `
+		SELECT id, exercise_name, sets, reps, duration_seconds, weight, notes, unit, order_index
+		FROM workout_entries
+		WHERE workout_id = $1
+		ORDER BY order_index
+	`
+	rows, err := p.db.Query(entryQuery, workout.Id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry WorkoutEntry
+		err := rows.Scan(
+			&entry.Id,
+			&entry.ExerciseName,
+			&entry.Sets, &entry.Reps,
+			&entry.DurationSeconds,
+			&entry.Weight,
+			&entry.Notes,
+			&entry.Unit,
+			&entry.OrderIndex,
+		)
+		if err != nil {
+			return nil, err
+		}
+		workout.Entries = append(workout.Entries, entry)
+	}
+
 	return workout, nil
+}
+
+func (p *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
+	tx, err := p.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	query := `
+		UPDATE workouts
+		SET title = $1, description = $2, duration_minutes = $3, calories_burned = $4
+		WHERE id = $5
+	`
+
+	result, err := tx.Exec(
+		query,
+		workout.Title,
+		workout.Description,
+		workout.DurationMinutes,
+		workout.CaloriesBurned,
+		workout.Id,
+	)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
+
+	// Updating entries
+	_, err = tx.Exec("DELETE FROM workout_entries WHERE workout_id = $1", workout.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range workout.Entries {
+		err := insertWorkoutEntry(tx, workout.Id, entry)
+		if err != nil {
+			return err
+		}
+	}
+
+	tx.Commit()
+
+	return nil
 }
 
 func createWorkoutEntry(tx *sql.Tx, workoutId int64, entry *WorkoutEntry) error {
@@ -83,6 +184,31 @@ func createWorkoutEntry(tx *sql.Tx, workoutId int64, entry *WorkoutEntry) error 
 		`
 
 	err := tx.QueryRow(query, workoutId, entry.ExerciseName, entry.Sets, entry.Reps, entry.DurationSeconds, entry.Weight, entry.Notes, entry.Unit, entry.OrderIndex).Scan(&entry.Id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func insertWorkoutEntry(tx *sql.Tx, workoutId int64, entry WorkoutEntry) error {
+	query := `
+		INSERT INTO workout_entries (workout_id, exercise_name, sets, reps, duration_seconds, weight, notes, unit, order_index)
+			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		`
+	_, err := tx.Exec(
+		query,
+		workoutId,
+		entry.ExerciseName,
+		entry.Sets,
+		entry.Reps,
+		entry.DurationSeconds,
+		entry.Weight,
+		entry.Notes,
+		entry.Unit,
+		entry.OrderIndex,
+	)
+
 	if err != nil {
 		return err
 	}
