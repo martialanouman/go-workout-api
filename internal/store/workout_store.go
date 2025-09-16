@@ -29,6 +29,7 @@ type WorkoutStore interface {
 	CreateWorkout(*Workout) (*Workout, error)
 	GetWorkoutById(int64) (*Workout, error)
 	UpdateWorkout(*Workout) error
+	DeletingWorkout(int64) error
 }
 
 type PostgresWorkoutStore struct {
@@ -83,10 +84,6 @@ func (p *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
 	`
 
 	err := p.db.QueryRow(query, id).Scan(&workout.Id, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	}
-
 	if err != nil {
 		return nil, err
 	}
@@ -172,6 +169,29 @@ func (p *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
 	}
 
 	tx.Commit()
+
+	return nil
+}
+
+func (p *PostgresWorkoutStore) DeletingWorkout(id int64) error {
+	query := `
+	DELETE FROM workouts
+	WHERE id = $1
+	`
+
+	result, err := p.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
+	}
 
 	return nil
 }
