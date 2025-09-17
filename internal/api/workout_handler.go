@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/martialanouman/femProject/internal/store"
+	"github.com/martialanouman/femProject/internal/utils"
 )
 
 type WorkoutHandler struct {
@@ -22,13 +21,7 @@ func NewWorkoutHandler(store store.WorkoutStore) *WorkoutHandler {
 }
 
 func (wh *WorkoutHandler) HandleGetWorkoutById(w http.ResponseWriter, r *http.Request) {
-	paramWorkoutId := chi.URLParam(r, "id")
-	if paramWorkoutId == "" {
-		http.NotFound(w, r)
-		return
-	}
-
-	workoutId, err := strconv.ParseInt(paramWorkoutId, 10, 64)
+	workoutId, err := utils.ReadIdParam(r)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -46,9 +39,7 @@ func (wh *WorkoutHandler) HandleGetWorkoutById(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	w.Header().Set("Content-TYpe", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(workout)
+	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workout": workout})
 }
 
 func (wh WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Request) {
@@ -67,18 +58,11 @@ func (wh WorkoutHandler) HandleCreateWorkout(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(createdWorkout)
+	utils.WriteJSON(w, http.StatusCreated, utils.Envelope{"workout": createdWorkout})
 }
 
 func (wh *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Request) {
-	paramWorkoutId := chi.URLParam(r, "id")
-	if paramWorkoutId == "" {
-		http.NotFound(w, r)
-		return
-	}
-
-	workoutId, err := strconv.ParseInt(paramWorkoutId, 10, 64)
+	workoutId, err := utils.ReadIdParam(r)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -100,13 +84,7 @@ func (wh *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Req
 }
 
 func (wh *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Request) {
-	paramWorkoutId := chi.URLParam(r, "id")
-	if paramWorkoutId == "" {
-		http.NotFound(w, r)
-		return
-	}
-
-	workoutId, err := strconv.ParseInt(paramWorkoutId, 10, 64)
+	workoutId, err := utils.ReadIdParam(r)
 	if err != nil {
 		http.NotFound(w, r)
 		return
@@ -166,7 +144,5 @@ func (wh *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(existingWorkout)
+	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workout": existingWorkout})
 }
