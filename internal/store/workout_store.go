@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"fmt"
 )
 
 type Workout struct {
@@ -59,8 +60,8 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 		return nil, err
 	}
 
-	for _, entry := range workout.Entries {
-		err := createWorkoutEntry(tx, workout.Id, &entry)
+	for index := range workout.Entries {
+		err := createWorkoutEntry(tx, workout.Id, &workout.Entries[index])
 		if err != nil {
 			return nil, err
 		}
@@ -70,6 +71,8 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("%+v\n", workout)
 
 	return workout, nil
 }
@@ -203,7 +206,17 @@ func createWorkoutEntry(tx *sql.Tx, workoutId int64, entry *WorkoutEntry) error 
 			RETURNING id
 		`
 
-	err := tx.QueryRow(query, workoutId, entry.ExerciseName, entry.Sets, entry.Reps, entry.DurationSeconds, entry.Weight, entry.Notes, entry.Unit, entry.OrderIndex).Scan(&entry.Id)
+	err := tx.QueryRow(query,
+		workoutId,
+		entry.ExerciseName,
+		entry.Sets,
+		entry.Reps,
+		entry.DurationSeconds,
+		entry.Weight,
+		entry.Notes,
+		entry.Unit,
+		entry.OrderIndex,
+	).Scan(&entry.Id)
 	if err != nil {
 		return err
 	}
