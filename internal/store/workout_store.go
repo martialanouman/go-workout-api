@@ -31,7 +31,7 @@ type WorkoutStore interface {
 	GetWorkoutById(int64) (*Workout, error)
 	UpdateWorkout(*Workout) error
 	DeletingWorkout(int64) error
-	GetWorkouts() ([]Workout, error)
+	GetWorkouts(take int32, skip int32) ([]Workout, error)
 }
 
 type PostgresWorkoutStore struct {
@@ -78,16 +78,17 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 	return workout, nil
 }
 
-func (p *PostgresWorkoutStore) GetWorkouts() ([]Workout, error) {
+func (p *PostgresWorkoutStore) GetWorkouts(take int32, skip int32) ([]Workout, error) {
 	workouts := []Workout{}
 
 	query := `
 		SELECT id, title, description, duration_minutes, calories_burned
 		FROM workouts
 		ORDER BY created_at DESC
+		LIMIT $1 OFFSET $2
 	`
 
-	rows, err := p.db.Query(query)
+	rows, err := p.db.Query(query, take, skip)
 	if err != nil {
 		return nil, err
 	}
