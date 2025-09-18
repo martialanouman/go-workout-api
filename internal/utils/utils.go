@@ -38,3 +38,24 @@ func ReadIdParam(r *http.Request) (int64, error) {
 
 	return id, nil
 }
+
+func ReadPaginationParams(r *http.Request) (int32, int32, error) {
+	qs := r.URL.Query()
+	paramTake, paramSkip := qs.Get("take"), qs.Get("skip")
+
+	if paramTake == "" && paramSkip == "" {
+		return 5, 0, nil
+	}
+
+	take, err := strconv.ParseInt(paramTake, 10, 32)
+	if err != nil {
+		return 0, 0, errors.New("invalid take parameter")
+	}
+
+	skip, err := strconv.ParseInt(paramSkip, 10, 32)
+	if err != nil {
+		return 0, 0, errors.New("invalid skip parameter")
+	}
+
+	return int32(take), int32(skip), nil
+}
