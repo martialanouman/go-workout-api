@@ -31,6 +31,7 @@ type WorkoutStore interface {
 	GetWorkoutById(int64) (*Workout, error)
 	UpdateWorkout(*Workout) error
 	DeletingWorkout(int64) error
+	GetWorkouts() ([]Workout, error)
 }
 
 type PostgresWorkoutStore struct {
@@ -75,6 +76,41 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 	fmt.Printf("%+v\n", workout)
 
 	return workout, nil
+}
+
+func (p *PostgresWorkoutStore) GetWorkouts() ([]Workout, error) {
+	workouts := []Workout{}
+
+	query := `
+		SELECT id, title, description, duration_minutes, calories_burned
+		FROM workouts
+		ORDER BY created_at DESC
+	`
+
+	rows, err := p.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var workout Workout
+		err := rows.Scan(
+			&workout.Id,
+			&workout.Title,
+			&workout.Description,
+			&workout.DurationMinutes,
+			&workout.CaloriesBurned,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		workout.Entries = []WorkoutEntry{}
+		workouts = append(workouts, workout)
+	}
+
+	return workouts, nil
 }
 
 func (p *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {

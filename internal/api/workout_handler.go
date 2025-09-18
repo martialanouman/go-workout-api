@@ -154,3 +154,14 @@ func (wh *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Req
 
 	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workout": existingWorkout})
 }
+
+func (wh *WorkoutHandler) HandleGetWorkouts(w http.ResponseWriter, r *http.Request) {
+	workouts, err := wh.store.GetWorkouts()
+	if err != nil {
+		wh.logger.Printf("ERROR: GetWorkouts %w", err)
+		utils.WriteJSON(w, http.StatusInternalServerError, utils.Envelope{"error": "internal server error"})
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workouts": workouts})
+}
