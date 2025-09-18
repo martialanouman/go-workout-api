@@ -156,12 +156,19 @@ func (wh *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Req
 }
 
 func (wh *WorkoutHandler) HandleGetWorkouts(w http.ResponseWriter, r *http.Request) {
-	workouts, err := wh.store.GetWorkouts()
+	take, skip, err := utils.ReadPaginationParams(r)
 	if err != nil {
-		wh.logger.Printf("ERROR: GetWorkouts %w", err)
+		wh.logger.Printf("ERROR: ReadPaginationParams %v", err)
+		utils.WriteJSON(w, http.StatusBadRequest, utils.Envelope{"error": "invalid pagination parameters"})
+		return
+	}
+
+	workouts, err := wh.store.GetWorkouts(take, skip)
+	if err != nil {
+		wh.logger.Printf("ERROR: GetWorkouts %v", err)
 		utils.WriteJSON(w, http.StatusInternalServerError, utils.Envelope{"error": "internal server error"})
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workouts": workouts})
+	utils.WriteJSON(w, http.StatusOK, utils.Envelope{"workouts": workouts, "take": take, "skip": skip})
 }
