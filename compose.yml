@@ -14,8 +14,24 @@ services:
       - fem_network
     restart: unless-stopped
 
+  db_test:
+    image: postgres:17-alpine
+    container_name: workout_db_test
+    environment:
+      POSTGRES_USER: workout_user
+      POSTGRES_PASSWORD: workout_password
+      POSTGRES_DB: workout_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - "db_data_test:/var/lib/postgresql/data:rw"
+    networks:
+      - fem_network
+    restart: unless-stopped
+
 volumes:
   db_data:
+  db_data_test:
 
 networks:
   fem_network:
