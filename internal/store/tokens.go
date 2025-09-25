@@ -9,7 +9,7 @@ import (
 
 type TokenStore interface {
 	Insert(token *tokens.Token) error
-	CreateToken(userId int, ttl time.Duration, scope string) (*tokens.Token, error)
+	CreateToken(userId int64, ttl time.Duration, scope string) (*tokens.Token, error)
 	RevokeAllTokenForUser(userId int, scope string) error
 }
 
@@ -21,7 +21,7 @@ func NewPostgresTokenStore(db *sql.DB) *PostgresTokenStore {
 	return &PostgresTokenStore{db}
 }
 
-func (s *PostgresTokenStore) CreateToken(userId int, ttl time.Duration, scope string) (*tokens.Token, error) {
+func (s *PostgresTokenStore) CreateToken(userId int64, ttl time.Duration, scope string) (*tokens.Token, error) {
 	token, err := tokens.GenerateToken(userId, ttl, scope)
 	if err != nil {
 		return nil, err
