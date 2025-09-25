@@ -39,7 +39,7 @@ func ReadIdParam(r *http.Request) (int64, error) {
 	return id, nil
 }
 
-func ReadPaginationParams(r *http.Request) (int32, int32, error) {
+func ReadPaginationParams(r *http.Request) (int, int, error) {
 	qs := r.URL.Query()
 	paramTake, paramSkip := qs.Get("take"), qs.Get("skip")
 
@@ -57,5 +57,5 @@ func ReadPaginationParams(r *http.Request) (int32, int32, error) {
 		return 0, 0, errors.New("invalid skip parameter")
 	}
 
-	return int32(take), int32(skip), nil
+	return int(take), int(skip), nil
 }
