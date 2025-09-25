@@ -42,7 +42,7 @@ func (p *password) Matches(plainText string) (bool, error) {
 }
 
 type User struct {
-	Id           int       `json:"id"`
+	Id           int64     `json:"id"`
 	Username     string    `json:"name"`
 	Email        string    `json:"email"`
 	PasswordHash password  `json:"-"`
@@ -150,13 +150,13 @@ func (p *PostgresUserStore) GetUserByToken(scope, tokenPlaintext string) (*User,
 	}
 
 	query := `
-	SELECT u.id, u.username, u.email, u.password_hash, u.bio, u.created_at, u.updated_at FROM u
+	SELECT u.id, u.username, u.email, u.password_hash, u.bio, u.created_at, u.updated_at
 	FROM users u
 	INNER JOIN tokens t ON t.user_id = u.id
 	WHERE t.hash = $1 AND scope = $2 AND t.expiry > $3
 	`
 
-	err := p.db.QueryRow(query, tokenHash, scope, time.Now()).Scan(
+	err := p.db.QueryRow(query, tokenHash[:], scope, time.Now()).Scan(
 		&user.Id,
 		&user.Username,
 		&user.Email,
