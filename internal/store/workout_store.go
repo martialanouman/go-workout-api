@@ -218,8 +218,8 @@ func (p *PostgresWorkoutStore) UpdateWorkout(workout *Workout) error {
 		return err
 	}
 
-	for _, entry := range workout.Entries {
-		err := insertWorkoutEntry(tx, workout.Id, entry)
+	for index := range workout.Entries {
+		err := insertWorkoutEntry(tx, workout.Id, &workout.Entries[index])
 		if err != nil {
 			return err
 		}
@@ -295,12 +295,13 @@ func createWorkoutEntry(tx *sql.Tx, workoutId int64, entry *WorkoutEntry) error 
 	return nil
 }
 
-func insertWorkoutEntry(tx *sql.Tx, workoutId int64, entry WorkoutEntry) error {
+func insertWorkoutEntry(tx *sql.Tx, workoutId int64, entry *WorkoutEntry) error {
 	query := `
 		INSERT INTO workout_entries (workout_id, exercise_name, sets, reps, duration_seconds, weight, notes, unit, order_index)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id
 		`
-	_, err := tx.Exec(
+	err := tx.QueryRow(
 		query,
 		workoutId,
 		entry.ExerciseName,
@@ -311,7 +312,7 @@ func insertWorkoutEntry(tx *sql.Tx, workoutId int64, entry WorkoutEntry) error {
 		entry.Notes,
 		entry.Unit,
 		entry.OrderIndex,
-	)
+	).Scan(&entry.Id)
 
 	if err != nil {
 		return err
