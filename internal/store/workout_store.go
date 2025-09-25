@@ -128,12 +128,19 @@ func (p *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
 	workout := &Workout{}
 
 	query := `
-		SELECT id, title, description, duration_minutes, calories_burned
+		SELECT id, user_id, title, description, duration_minutes, calories_burned
 		FROM workouts
 		WHERE id = $1
 	`
 
-	err := p.db.QueryRow(query, id).Scan(&workout.Id, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned)
+	err := p.db.QueryRow(query, id).Scan(
+		&workout.Id,
+		&workout.UserId,
+		&workout.Title,
+		&workout.Description,
+		&workout.DurationMinutes,
+		&workout.CaloriesBurned,
+	)
 	if err != nil {
 		return nil, err
 	}
