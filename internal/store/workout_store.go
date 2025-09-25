@@ -8,7 +8,7 @@ import (
 type Workout struct {
 	Id              int64          `json:"id"`
 	Title           string         `json:"title"`
-	UserId          int            `json:"user_id"`
+	UserId          int64          `json:"user_id"`
 	Description     string         `json:"description"`
 	DurationMinutes int            `json:"duration_minutes"`
 	CaloriesBurned  int            `json:"calories_burned"`
@@ -87,7 +87,7 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 	return workout, nil
 }
 
-func (p *PostgresWorkoutStore) GetWorkouts(take int32, skip int32) ([]Workout, error) {
+func (p *PostgresWorkoutStore) GetWorkouts(take int, skip int) ([]Workout, error) {
 	workouts := []Workout{}
 
 	query := `
@@ -126,10 +126,10 @@ func (p *PostgresWorkoutStore) GetWorkouts(take int32, skip int32) ([]Workout, e
 func (p *PostgresWorkoutStore) GetWorkoutById(id int64) (*Workout, error) {
 	workout := &Workout{}
 
-	query :=
-		`SELECT id, title, description, duration_minutes, calories_burned
-	FROM workouts
-	WHERE id = $1
+	query := `
+		SELECT id, title, description, duration_minutes, calories_burned
+		FROM workouts
+		WHERE id = $1
 	`
 
 	err := p.db.QueryRow(query, id).Scan(&workout.Id, &workout.Title, &workout.Description, &workout.DurationMinutes, &workout.CaloriesBurned)
