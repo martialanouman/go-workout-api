@@ -80,6 +80,12 @@ func (h *WorkoutHandler) HandleDeleteWorkout(w http.ResponseWriter, r *http.Requ
 
 	currentUser := middleware.GetUser(r)
 	ownerId, err := h.store.GetWorkoutOwner(workoutId)
+	if errors.Is(err, sql.ErrNoRows) {
+		h.logger.Printf("ERROR: GetWorkoutOwner %v", err)
+		utils.WriteJSON(w, http.StatusNotFound, utils.Envelope{"error": "workout not found"})
+		return
+	}
+
 	if err != nil {
 		h.logger.Printf("ERROR: GetWorkoutOwner %v", err)
 		utils.WriteJSON(w, http.StatusInternalServerError, utils.Envelope{"error": "internal server error"})
@@ -122,6 +128,12 @@ func (h *WorkoutHandler) HandleUpdateWorkout(w http.ResponseWriter, r *http.Requ
 	}
 
 	existingWorkout, err := h.store.GetWorkoutById(workoutId)
+	if errors.Is(err, sql.ErrNoRows) {
+		h.logger.Printf("ERROR: GetWorkoutById %v", err)
+		utils.WriteJSON(w, http.StatusNotFound, utils.Envelope{"error": "workout not found"})
+		return
+	}
+
 	if err != nil {
 		h.logger.Printf("ERROR: GetWorkoutById %v", err)
 		utils.WriteJSON(w, http.StatusInternalServerError, utils.Envelope{"error": "internal server error"})
