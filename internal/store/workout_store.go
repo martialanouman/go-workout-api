@@ -300,7 +300,7 @@ func insertWorkoutEntry(tx *sql.Tx, workoutId int64, entry *WorkoutEntry) error 
 		INSERT INTO workout_entries (workout_id, exercise_name, sets, reps, duration_seconds, weight, notes, unit, order_index)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id
-		`
+	`
 	err := tx.QueryRow(
 		query,
 		workoutId,

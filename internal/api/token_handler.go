@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/martialanouman/femProject/internal/middleware"
 	"github.com/martialanouman/femProject/internal/store"
 	"github.com/martialanouman/femProject/internal/tokens"
 	"github.com/martialanouman/femProject/internal/utils"
@@ -90,5 +91,14 @@ func (h *TokenHandler) HandleCreateToken(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *TokenHandler) HandleRevokeAllTokensForUser(w http.ResponseWriter, r *http.Request) {
+	currentUser := middleware.GetUser(r)
 
+	err := h.store.RevokeAllTokenForUser(currentUser.Id, tokens.ScopeAuth)
+	if err != nil {
+		h.logger.Printf("ERROR: RevokeAllTokenForUser %v", err)
+		utils.WriteJSON(w, http.StatusInternalServerError, utils.Envelope{"error": "internal server error"})
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

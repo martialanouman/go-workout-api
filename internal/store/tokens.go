@@ -10,7 +10,7 @@ import (
 type TokenStore interface {
 	Insert(token *tokens.Token) error
 	CreateToken(userId int64, ttl time.Duration, scope string) (*tokens.Token, error)
-	RevokeAllTokenForUser(userId int, scope string) error
+	RevokeAllTokenForUser(userId int64, scope string) error
 }
 
 type PostgresTokenStore struct {
@@ -43,7 +43,7 @@ func (s *PostgresTokenStore) Insert(token *tokens.Token) error {
 
 }
 
-func (s *PostgresTokenStore) RevokeAllTokenForUser(userId int, scope string) error {
+func (s *PostgresTokenStore) RevokeAllTokenForUser(userId int64, scope string) error {
 	query := `
 		DELETE FROM tokens
 		WHERE user_id = $1 AND scope = $2
