@@ -91,7 +91,7 @@ func (p *PostgresWorkoutStore) GetWorkouts(take int, skip int) ([]Workout, error
 	workouts := []Workout{}
 
 	query := `
-		SELECT id, title, description, duration_minutes, calories_burned
+		SELECT id, user_id, title, description, duration_minutes, calories_burned
 		FROM workouts
 		ORDER BY created_at DESC
 		LIMIT $1 OFFSET $2
@@ -107,6 +107,7 @@ func (p *PostgresWorkoutStore) GetWorkouts(take int, skip int) ([]Workout, error
 		var workout Workout
 		err := rows.Scan(
 			&workout.Id,
+			&workout.UserId,
 			&workout.Title,
 			&workout.Description,
 			&workout.DurationMinutes,
