@@ -43,7 +43,7 @@ A RESTful API service for tracking workouts and managing users, built with Go an
 ## Project Structure
 
 ```
-fem_project/
+go-workout-api/
 ├── main.go                    # Application entry point
 ├── compose.yml               # Docker Compose configuration
 ├── go.mod                    # Go module definition
@@ -85,8 +85,8 @@ fem_project/
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/martialanouman/femProject.git
-   cd fem_project
+   git clone https://github.com/martialanouman/go-workout-api.git
+   cd go-workout-api
    ```
 
 2. **Start the database with Docker Compose**
@@ -101,15 +101,25 @@ fem_project/
    go mod download
    ```
 
-4. **Set up environment variables** (optional)
+4. **Set up environment variables**
+
+   The application requires a `.env` file for database configuration. Copy the example file and configure it:
 
    ```bash
-   export DB_HOST=localhost
-   export DB_PORT=5432
-   export DB_USER=workout_user
-   export DB_PASSWORD=workout_password
-   export DB_NAME=workout_db
+   cp .env.example .env
    ```
+
+   Edit the `.env` file with your database configuration:
+
+   ```bash
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=
+   DB_PASSWORD=
+   DB_NAME=
+   ```
+
+   **Note**: These values should match your PostgreSQL setup. If using Docker Compose, the default values above will work with the provided configuration.
 
 5. **Run database migrations**
 
@@ -128,13 +138,19 @@ The API will be available at `http://localhost:8080` (or your specified port).
 
 ### Running with Docker Compose
 
-To run the entire application stack:
+To run the entire application stack with Docker Compose:
+
+1. **Set up environment variables** (as described in step 4 above)
+2. **Start all services**:
 
 ```bash
 docker compose up -d
 ```
 
-This will start both the PostgreSQL database and the application.
+This will start both the PostgreSQL database and the application. The compose file includes:
+
+- **db**: PostgreSQL database on port 5432
+- **db_test**: Test database on port 5433 (for testing purposes)
 
 ## Configuration
 
