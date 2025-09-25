@@ -1,4 +1,4 @@
-# FEM Project - Workout Tracking API
+# Workout Tracking API
 
 A RESTful API service for tracking workouts and managing users, built with Go and PostgreSQL. This project provides endpoints for user registration, authentication via JWT tokens, and comprehensive workout management.
 
