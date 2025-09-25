@@ -38,7 +38,7 @@ func GetUser(r *http.Request) *store.User {
 func (um *UserMiddleware) Authenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Authorization")
-		authHeader := w.Header().Get("Authorization")
+		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
 			r := SetUser(r, store.AnonymousUser)
