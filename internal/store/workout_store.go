@@ -54,7 +54,7 @@ func (p *PostgresWorkoutStore) CreateWorkout(workout *Workout) (*Workout, error)
 
 	query :=
 		`INSERT INTO workouts (user_id, title, description, duration_minutes, calories_burned)
-	VALUES ($1, $2, $3, $4)
+	VALUES ($1, $2, $3, $4, $5)
 	RETURNING id
 	`
 
